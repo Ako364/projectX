@@ -10,7 +10,7 @@ BLACK = (0,0,0)
 WHITE = (255,255,255)
 BLUE = (150,50,255)
 YELLOW = (255,255,0)
-GREEN = (0, 20, 15)
+GREEN = (16, 20, 15)
 RED = (100, 0 ,0)
 
 a = False
@@ -94,7 +94,7 @@ for x in range(obstacle_amount):
     all_sprites_group.add(obstacle)
 
 # -- create a player
-car = Car(50, 110, 1)
+car = Car(30, 75, 1)
 car_group.add(car)
 all_sprites_group.add(car)
 
@@ -132,25 +132,28 @@ while not done:
                     a = True
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            if car.rect.x < 330:
+            if car.rect.x < 300:
                 car.rect.x = 330
             else:
-                car.rect.x = car.rect.x - 20
+                car.rect.x = car.rect.x - 5
         if keys[pygame.K_RIGHT]:
             if car.rect.x >= 700 - 40:
                 car.rect.x = 670
             else:
-                car.rect.x = car.rect.x + 20
+                car.rect.x = car.rect.x + 5
+        
+        # -- Screen background is GREEN
+        screen.fill(GREEN)
         
         # -- Game logic goes after this comment
         all_sprites_group.update()
 
         # -- draw a scrolling background
         for i in range(0, tiles):
-            screen.blit(road, (300, i * road_height + scroll - 400))
+            screen.blit(road, (300, i * road_height + scroll - 600))
 
         # -- scroll  
-        scroll += 5
+        scroll += 7
 
         # -- reset scroll
         if scroll > road_height:
@@ -158,9 +161,6 @@ while not done:
 
         # -- car image drawing 
         # screen.blit(car_image, (car.rect.x, car.rect.y))
-
-        # -- Screen background is GREEN
-        # screen.fill(GREEN)
 
         # -- Draw here
         all_sprites_group.draw(screen)
