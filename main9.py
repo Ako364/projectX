@@ -13,6 +13,8 @@ YELLOW = (255,255,0)
 GREEN = (16, 20, 15)
 RED = (100, 0 ,0)
 
+done = False
+game = False
 
 ## - define classes 
 class Car(pygame.sprite.Sprite):
@@ -149,9 +151,43 @@ road_height = road.get_height()
 scroll = 0
 tiles = math.ceil(800 / road_height) + 2
 
-def play(): 
-    done = False  
-    if done == False:
+
+while done == False:
+    SCREEN.blit(BG, (0, 0))
+
+    MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+    MENU_TEXT = get_font(100).render("MAIN MENU", True, "#b68f40")
+    MENU_RECT = MENU_TEXT.get_rect(center=(500, 100))
+
+    PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(500, 250), 
+                        text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+    OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(500, 400), 
+                        text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+    QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(500, 550), 
+                        text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+
+    SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+    for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+        button.changeColor(MENU_MOUSE_POS)
+        button.update(SCREEN)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                game = True
+            if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                options()
+            if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                pygame.quit()
+                sys.exit()
+
+
+    if game == True:
 
         # if player.lives == 0:
         #     pygame.quit()
@@ -179,15 +215,7 @@ def play():
                     car.rect.x = car.rect.x + 5
             
             # -- SCREEN background is GREEN
-            SCREEN.fill(GREEN)
-
-            # -- background image loading 
-            road = pygame.image.load("image.png").convert_alpha()
-            road_height = road.get_height()
-
-            # -- define game vars
-            scroll = 0
-            tiles = math.ceil(800 / road_height) + 2    
+            SCREEN.fill(GREEN)  
             
             # -- Game logic goes after this comment
             all_sprites_group.update()
@@ -219,49 +247,9 @@ def play():
             # - The clock ticks over
             clock.tick(40)
 
-game = False
 
-def main_menu():
-    while True:
-        SCREEN.blit(BG, (0, 0))
-
-        MENU_MOUSE_POS = pygame.mouse.get_pos()
-
-        MENU_TEXT = get_font(100).render("MAIN MENU", True, "#b68f40")
-        MENU_RECT = MENU_TEXT.get_rect(center=(500, 100))
-
-        PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(500, 250), 
-                            text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(500, 400), 
-                            text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(500, 550), 
-                            text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-
-        SCREEN.blit(MENU_TEXT, MENU_RECT)
-
-        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
-            button.changeColor(MENU_MOUSE_POS)
-            button.update(SCREEN)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    game = True
-                if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    options()
-                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    pygame.quit()
-                    sys.exit()
-
-        pygame.display.update()
+    pygame.display.update()
         
-if game == True:
-    play()
-else:
-    main_menu()
 
 #End While - End of game loop
 pygame.quit()
