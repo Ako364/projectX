@@ -46,7 +46,10 @@ class Car(pygame.sprite.Sprite):
         self.rect.x = random.randrange(400, 650)
         self.rect.y = 550
         self.speed = speed
-        self.score_count = 0 
+
+        # - additional vars
+        self.distanceCovered = 0 
+        self.score_count = 0
 
     # - getter mehtods
     def get_x(self):
@@ -60,34 +63,45 @@ class Car(pygame.sprite.Sprite):
         self.rect.x = x_co
 
     # - target hitting function 
+    def move(self):
+        self.distanceCovered = self.distanceCovered + 0.05
+
+    # Score
     def hitTarget(self):
         self.score_count = self.score_count + 1
 
 # -- Enemy class 
-class Enemy(pygame.sprite.Sprite):
+class Coin(pygame.sprite.Sprite):
     # - constructor 
     def __init__(self, width, height, speed):
         super().__init__()
         self.image = pygame.Surface([width, height])
-        # self.image = pygame.image.load("car.png").convert_alpha()
-        # self.image.fill(color)
+        self.image = pygame.image.load("coin.png").convert_alpha()
+
         self.rect = self.image.get_rect()
+        self.maska = pygame.mask.from_surface(self.image)
 
         # - positions 
-        self.rect.x = random.randrange(400, 650)
-        self.rect.y = 650
-        self.speed = speed
-        self.score_count = 0 
+        self.rect.x = random.choice(lanes) + 20
+        self.rect.y = random.randrange(-500,-200)
 
-    # - Getter method 
+        # - speed
+        self.speed = speed
+
+    # - update function 
+    def update(self):
+        self.rect.y = self.rect.y + self.speed
+
+    # - getter methods
     def get_x(self):
         return self.rect.x
-    
-    # def player_set_speed(self):
-    #     self.rect.x = self.rect.x + self.speed
 
-    # def hitTarget(self):
-    #     self.score_count = self.score_count + 1
+    def get_y(self):
+        return self.rect.y
+
+    # - setter method 
+    def set_x(self, x_co):
+        self.rect.x = x_co
 
 # -- Obstacle class 
 class Obstacle(pygame.sprite.Sprite):
@@ -122,10 +136,6 @@ class Obstacle(pygame.sprite.Sprite):
     # - setter method 
     def set_x(self, x_co):
         self.rect.x = x_co
-
-    # - obstacle hitting a player 
-    # if pygame.sprite.groupcollide(Obstacle_group, car_group, True, True, collided = None):
-    #     car.hitTarget()
 
 # -- button class
 class Button():
@@ -179,6 +189,9 @@ Obstacle_group = pygame.sprite.Group()
 # Create a list of the cars
 car_group = pygame.sprite.Group()
 
+#Create a list of coins 
+Coin_group = pygame.sprite.Group()
+
 # Create a list of all sprites
 all_sprites_group = pygame.sprite.Group()
 
@@ -189,9 +202,6 @@ clock = pygame.time.Clock()
 car = Car(5, 20, 1)
 car_group.add(car)
 all_sprites_group.add(car)
-
-## - masks
-# CAR_BOARDER = pygame.surface.Surface(car)
 
 # -- Title of new window/SCREEN
 pygame.display.set_caption("Race")
@@ -205,18 +215,13 @@ road = pygame.image.load("image.png").convert_alpha()
 road_height = road.get_height()
 
 # -- background for the road  
-background = pygame.image.load("bush2.png").convert_alpha()
+background = pygame.image.load("bg.png").convert_alpha()
 background_height = background.get_height()
 
 # -- define game vars
 scroll = 0
 scroll2 = 0
 tiles = math.ceil(800 / road_height) + 2
-tiles2 = math.ceil(800 / background_height) 
-
-# -- setting random number udentifiers for images
-x_random = random.randrange(0, 350)    
-x_random2 = random.randrange(750, 1000)
 
 
 ## - GAME LOOP
@@ -230,8 +235,6 @@ while done == False:
 
     PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(500, 300), 
                         text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-    # OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(500, 400), 
-    #                     text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
     QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(500, 450), 
                         text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
 
@@ -257,11 +260,6 @@ while done == False:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
-        #     elif event.type == pygame.KEYDOWN:
-        #         if event.key == pygame.K_LEFT:
-        #             a = True
-        #         elif event.key == pygame.K_RIGHT:
-        #             a = True
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             if car.get_x() <= 300:
@@ -277,6 +275,20 @@ while done == False:
         # -- SCREEN background is GREEN
         SCREEN.fill(GREEN)  
 
+        for i in range(0, tiles):
+            SCREEN.blit(road, (300, i * road_height + scroll - 600))
+
+        # -- scroll  
+        scroll += 7
+        scroll2 += 7
+
+        # -- reset scroll
+        if scroll > road_height:
+            scroll = 0
+
+        if scroll2 > background_height:
+            scroll2 = 0
+
         # -- creating obstacles (if there are less then three obstacles)
         if len(Obstacle_group) < 5:
             obstacle = Obstacle(WHITE, 5, 20, 8)
@@ -287,49 +299,44 @@ while done == False:
         if obstacle.rect.y >= 800:
             obstacle.kill()
 
+        # -- creating coins 
+        if len(Coin_group) < 2:
+            coin = Coin(5, 5, 8)
+            Coin_group.add(coin)
+            all_sprites_group.add(coin)
+
+        # -- checking if the coin has left the visible part of the road
+        if coin.rect.y >= 800:
+            coin.kill()
+
         # -- Game logic goes after this comment
         all_sprites_group.update()
-
-        # -- draw a scrolling background
-        for i in range(0, tiles):
-            SCREEN.blit(road, (300, i * road_height + scroll - 600))
-
-        for i in range(0, 3):
-            SCREEN.blit(background, (120, i * road_height + scroll2 - 210))
-            
-        for i in range(0, 3):
-            SCREEN.blit(background, (770, i * road_height + scroll2 - 150))
-
-        # -- scroll  
-        scroll += 7
-        scroll2 += 7
-
-        # -- reset scroll
-        if scroll > road_height:
-            scroll = 0
-
-        if scroll2 > road_height:
-            scroll2 = 0
-
-        # - collisions 
-        # if car.maska.overlap(obstacle.maska, (car.get_x() - obstacle.get_x(), car.get_y() - obstacle.get_y())):
-        #     game = False
 
         # - collisions 
         if pygame.sprite.spritecollide(car, Obstacle_group, False, pygame.sprite.collide_mask):
             game = False
 
+        if pygame.sprite.spritecollide(coin, car_group, False, pygame.sprite.collide_mask):
+            coin.kill()
+            car.hitTarget()
+
         # -- Draw here
         all_sprites_group.draw(SCREEN)
 
+        # -- Distance covered 
+        car.move()
+    
+        millage_board = font.render("Travelled: " + str(int(car.distanceCovered)), True, (255, 255, 255))
+        SCREEN.blit(millage_board, (50, 50))
+
         # -- score
         score_board = font.render("SCORE: " + str(car.score_count), True, (255, 255, 255))
-        SCREEN.blit(score_board, (50, 150))
+        SCREEN.blit(score_board, (50, 100))
 
         # -- menu button option 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
-        MENU_BUTTON = Button(image=pygame.image.load("assets/61180.png"), pos=(80, 70), 
-                        text_input="", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        MENU_BUTTON = Button(image=pygame.image.load("assets/61180.png"), pos=(900, 70), 
+                        text_input="", font=get_font(75), base_color=WHITE, hovering_color="White")
 
         for button in [MENU_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)

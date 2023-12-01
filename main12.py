@@ -98,10 +98,11 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.image.load("carr.png").convert_alpha()
         # self.image.fill(color)
 
-        # - positions 
+        # - for collisions 
         self.rect = self.image.get_rect()
         self.maska = pygame.mask.from_surface(self.image)
 
+        # - positions 
         self.rect.x = random.choice(lanes)
         self.rect.y = random.randrange(-500,-200)
 
